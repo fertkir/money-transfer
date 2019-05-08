@@ -1,0 +1,7 @@
+CREATE TABLE account (
+    id NUMBER NOT NULL,
+    balance NUMBER,
+    CONSTRAINT account_pk PRIMARY KEY (id)
+);
+
+CREATE SEQUENCE account_seq START WITH 1 INCREMENT BY 1;
