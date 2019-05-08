@@ -6,6 +6,13 @@ public class AppServletModule extends ServletModule {
 
     public static final String CONTENT_TYPE = "application/json";
 
+    public interface AccountsParameters {
+        String ACCOUNT_ID = "accountId";
+        String AMOUNT = "amount";
+        String FROM = "from";
+        String TO = "to";
+    }
+
     @Override
     protected void configureServlets() {
         bind(AccountsServlet.class);

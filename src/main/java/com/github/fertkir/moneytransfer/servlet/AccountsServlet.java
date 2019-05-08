@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+import static com.github.fertkir.moneytransfer.servlet.AppServletModule.AccountsParameters.ACCOUNT_ID;
 import static com.github.fertkir.moneytransfer.servlet.AppServletModule.CONTENT_TYPE;
 
 @Singleton
@@ -28,7 +29,7 @@ public class AccountsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String accountIdParam = req.getParameter("accountId");
+        String accountIdParam = req.getParameter(ACCOUNT_ID);
         String responseValue;
         if (accountIdParam == null) {
             List<Account> accounts = accountService.list();

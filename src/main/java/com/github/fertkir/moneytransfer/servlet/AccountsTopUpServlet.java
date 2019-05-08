@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 
+import static com.github.fertkir.moneytransfer.servlet.AppServletModule.AccountsParameters.ACCOUNT_ID;
+import static com.github.fertkir.moneytransfer.servlet.AppServletModule.AccountsParameters.AMOUNT;
 import static com.github.fertkir.moneytransfer.servlet.AppServletModule.CONTENT_TYPE;
 
 @Singleton
@@ -28,8 +30,8 @@ public class AccountsTopUpServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        long accountId = Long.parseLong(req.getParameter("accountId"));
-        BigDecimal amount = new BigDecimal(req.getParameter("amount"));
+        long accountId = Long.parseLong(req.getParameter(ACCOUNT_ID));
+        BigDecimal amount = new BigDecimal(req.getParameter(AMOUNT));
 
         Account result = accountService.topUp(accountId, amount);
 

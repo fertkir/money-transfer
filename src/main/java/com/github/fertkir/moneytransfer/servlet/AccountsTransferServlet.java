@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 
+import static com.github.fertkir.moneytransfer.servlet.AppServletModule.AccountsParameters.*;
 import static com.github.fertkir.moneytransfer.servlet.AppServletModule.CONTENT_TYPE;
 
 @Singleton
@@ -29,9 +30,9 @@ public class AccountsTransferServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        long accountFrom = Long.parseLong(req.getParameter("from"));
-        long accountTo = Long.parseLong(req.getParameter("to"));
-        BigDecimal amount = new BigDecimal(req.getParameter("amount"));
+        long accountFrom = Long.parseLong(req.getParameter(FROM));
+        long accountTo = Long.parseLong(req.getParameter(TO));
+        BigDecimal amount = new BigDecimal(req.getParameter(AMOUNT));
 
         TransferResult transferResult = accountService.transfer(accountFrom, accountTo, amount);
 
