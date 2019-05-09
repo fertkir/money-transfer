@@ -62,7 +62,19 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     @Override
-    public Account create(Account account) {
+    public Account save(Account account) {
+        Long id = account.getId();
+        if (id == null) {
+            return create(account);
+        } else {
+            if (getById(id).isPresent()) {
+                return update(account);
+            }
+            throw new PersistenceException(String.format("Cannot update entity with id %d", id));
+        }
+    }
+
+    private Account create(Account account) {
         try {
             String seqQuery = "SELECT account_seq.nextval FROM dual";
             PreparedStatement seqStatement = jdbcTemplate.prepareStatement(seqQuery);
@@ -86,8 +98,7 @@ public class AccountDaoImpl implements AccountDao {
         }
     }
 
-    @Override
-    public Account update(Account account) {
+    private Account update(Account account) {
         try {
             String query = "UPDATE account SET balance = ? where id = ?";
             PreparedStatement statement = jdbcTemplate.prepareStatement(query);

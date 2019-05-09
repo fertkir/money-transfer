@@ -11,7 +11,5 @@ public interface AccountDao {
 
     Optional<Account> getById(long id);
 
-    Account create(Account account);
-
-    Account update(Account account);
+    Account save(Account account);
 }

@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account createNew() {
         return transactionTemplate.execute(() ->
-                accountDao.create(Account.builder()
+                accountDao.save(Account.builder()
                         .balance(BigDecimal.ZERO)
                         .build()));
     }
@@ -52,7 +52,7 @@ public class AccountServiceImpl implements AccountService {
             Account updatedAccount = account.toBuilder()
                     .balance(newBalance)
                     .build();
-            return accountDao.update(updatedAccount);
+            return accountDao.save(updatedAccount);
         });
     }
 
@@ -68,7 +68,7 @@ public class AccountServiceImpl implements AccountService {
             Account updatedAccount = account.toBuilder()
                     .balance(newBalance)
                     .build();
-            return accountDao.update(updatedAccount);
+            return accountDao.save(updatedAccount);
         });
     }
 
@@ -87,10 +87,10 @@ public class AccountServiceImpl implements AccountService {
             BigDecimal newTargetBalance = target.getBalance().add(amount);
 
             return TransferResult.builder()
-                    .source(accountDao.update(source.toBuilder()
+                    .source(accountDao.save(source.toBuilder()
                             .balance(newSourceBalance)
                             .build()))
-                    .target(accountDao.update(target.toBuilder()
+                    .target(accountDao.save(target.toBuilder()
                             .balance(newTargetBalance)
                             .build()))
                     .build();
