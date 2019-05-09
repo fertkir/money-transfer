@@ -1,4 +1,4 @@
-package com.github.fertkir.moneytransfer.service.impl;
+package com.github.fertkir.moneytransfer.servlet;
 
 import com.github.fertkir.moneytransfer.ApplicationMain;
 import io.restassured.RestAssured;
