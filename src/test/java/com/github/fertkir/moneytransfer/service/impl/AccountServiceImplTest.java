@@ -18,8 +18,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -91,18 +90,17 @@ public class AccountServiceImplTest {
         long id = 1;
         when(accountDao.getById(id)).thenReturn(Optional.empty());
 
-        try {
-            // when
-            accountService.getById(id);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(id);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.getById(id));
 
-            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
-        }
+        // then
+        verify(accountDao).getById(id);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Account id \"1\" does not exist");
     }
 
     @Test
@@ -164,16 +162,16 @@ public class AccountServiceImplTest {
         long accountId = 1;
         BigDecimal amount = BigDecimal.valueOf(-1);
 
-        try {
-            // when
-            accountService.topUp(accountId, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.topUp(accountId, amount));
+
+        // then
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Amount must be positive, but given -1");
     }
 
     @Test
@@ -183,17 +181,17 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountId)).thenReturn(Optional.empty());
         BigDecimal amount = BigDecimal.valueOf(1);
 
-        try {
-            // when
-            accountService.topUp(accountId, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountId);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.topUp(accountId, amount));
+
+        // then
+        verify(accountDao).getById(accountId);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Account id \"1\" does not exist");
     }
 
     @Test
@@ -234,16 +232,16 @@ public class AccountServiceImplTest {
         long accountId = 1;
         BigDecimal amount = BigDecimal.valueOf(-1);
 
-        try {
-            // when
-            accountService.withdraw(accountId, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.withdraw(accountId, amount));
+
+        // then
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Amount must be positive, but given -1");
     }
 
     @Test
@@ -258,18 +256,17 @@ public class AccountServiceImplTest {
                 .build();
         when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
-        try {
-            // when
-            accountService.withdraw(accountId, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountId);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.withdraw(accountId, amount));
 
-            assertThat(e.getMessage()).isEqualTo("Cannot withdraw 100. Not enough money");
-        }
+        // then
+        verify(accountDao).getById(accountId);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Cannot withdraw 100. Not enough money");
     }
 
     @Test
@@ -279,17 +276,17 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountId)).thenReturn(Optional.empty());
         BigDecimal amount = BigDecimal.valueOf(1);
 
-        try {
-            // when
-            accountService.withdraw(accountId, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountId);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.withdraw(accountId, amount));
+
+        // then
+        verify(accountDao).getById(accountId);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Account id \"1\" does not exist");
     }
 
     @Test
@@ -360,18 +357,17 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountTo)).thenReturn(Optional.of(initialAccountTo));
 
         // when
-        try {
-            accountService.transfer(accountFrom, accountTo, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountFrom);
-            verify(accountDao).getById(accountTo);
-            verify(transactionTemplate).execute(transferResultCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
+        Throwable thrown = catchThrowable(() -> accountService.transfer(accountFrom, accountTo, amount));
 
-            assertThat(e.getMessage()).isEqualTo("Cannot transfer 30. Not enough money");
-        }
+        // then
+        verify(accountDao).getById(accountFrom);
+        verify(accountDao).getById(accountTo);
+        verify(transactionTemplate).execute(transferResultCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Cannot transfer 30. Not enough money");
     }
 
     @Test
@@ -381,16 +377,16 @@ public class AccountServiceImplTest {
         long accountTo = 2;
         BigDecimal amount = BigDecimal.valueOf(-1);
 
-        try {
-            // when
-            accountService.transfer(accountFrom, accountTo, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.transfer(accountFrom, accountTo, amount));
+
+        // then
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Amount must be positive, but given -1");
     }
 
     @Test
@@ -400,16 +396,16 @@ public class AccountServiceImplTest {
         long accountTo = 1;
         BigDecimal amount = BigDecimal.valueOf(1);
 
-        try {
-            // when
-            accountService.transfer(accountFrom, accountTo, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Source and destination accounts must be different");
-        }
+        // when
+        Throwable throwable = catchThrowable(() -> accountService.transfer(accountFrom, accountTo, amount));
+
+        // then
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(throwable)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Source and destination accounts must be different");
     }
 
     @Test
@@ -421,17 +417,17 @@ public class AccountServiceImplTest {
 
         when(accountDao.getById(accountFrom)).thenReturn(Optional.empty());
 
-        try {
-            // when
-            accountService.transfer(accountFrom, accountTo, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountFrom);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.transfer(accountFrom, accountTo, amount));
+
+        // then
+        verify(accountDao).getById(accountFrom);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Account id \"1\" does not exist");
     }
 
     @Test
@@ -448,17 +444,17 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountFrom)).thenReturn(Optional.of(initialAccountFrom));
         when(accountDao.getById(accountTo)).thenReturn(Optional.empty());
 
-        try {
-            // when
-            accountService.transfer(accountFrom, accountTo, amount);
-            fail("exception should have been thrown");
-        } catch (AccountingException e) {
-            // then
-            verify(accountDao).getById(accountFrom);
-            verify(accountDao).getById(accountTo);
-            verify(transactionTemplate).execute(accountCaptor.capture());
-            verifyNoMoreInteractions(accountDao, transactionTemplate);
-            assertThat(e.getMessage()).isEqualTo("Account id \"2\" does not exist");
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> accountService.transfer(accountFrom, accountTo, amount));
+
+        // then
+        verify(accountDao).getById(accountFrom);
+        verify(accountDao).getById(accountTo);
+        verify(transactionTemplate).execute(accountCaptor.capture());
+        verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+        assertThat(thrown)
+                .isInstanceOf(AccountingException.class)
+                .hasMessage("Account id \"2\" does not exist");
     }
 }

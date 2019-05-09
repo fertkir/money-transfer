@@ -8,13 +8,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.sql.DataSource;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -59,24 +58,21 @@ public class TransactionTemplateTest {
         RuntimeException exception = new RuntimeException();
         when(supplier.get()).thenThrow(exception);
 
-        try {
-            // when
-            transactionTemplate.execute(supplier);
-            fail("exception should have been thrown");
-        } catch (PersistenceException e) {
-            // then
-            InOrder inOrder = inOrder(connection, supplier, connectionKeeper);
-            inOrder.verify(connectionKeeper).set(connection);
-            inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            inOrder.verify(connection).setAutoCommit(false);
-            inOrder.verify(supplier).get();
-            inOrder.verify(connection).rollback();
-            inOrder.verify(connectionKeeper).remove();
-            inOrder.verify(connection).close();
-            verifyNoMoreInteractions(connection, supplier, connectionKeeper);
+        // when
+        Throwable thrown = catchThrowable(() -> transactionTemplate.execute(supplier));
 
-            assertThat(e.getCause()).isEqualTo(exception);
-        }
+        // then
+        InOrder inOrder = inOrder(connection, supplier, connectionKeeper);
+        inOrder.verify(connectionKeeper).set(connection);
+        inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        inOrder.verify(connection).setAutoCommit(false);
+        inOrder.verify(supplier).get();
+        inOrder.verify(connection).rollback();
+        inOrder.verify(connectionKeeper).remove();
+        inOrder.verify(connection).close();
+        verifyNoMoreInteractions(connection, supplier, connectionKeeper);
+
+        assertThat(thrown).hasCause(exception);
     }
 
     @Test
@@ -85,14 +81,11 @@ public class TransactionTemplateTest {
         SQLException exception = new SQLException();
         when(dataSource.getConnection()).thenThrow(exception);
 
-        try {
-            // when
-            transactionTemplate.execute(supplier);
-            fail("exception should have been thrown");
-        } catch (PersistenceException e) {
-            // then
-            verifyNoMoreInteractions(supplier, connectionKeeper);
-            assertThat(e.getCause()).isEqualTo(exception);
-        }
+        // when
+        Throwable thrown = catchThrowable(() -> transactionTemplate.execute(supplier));
+
+        // then
+        verifyNoMoreInteractions(supplier, connectionKeeper);
+        assertThat(thrown).hasCause(exception);
     }
 }

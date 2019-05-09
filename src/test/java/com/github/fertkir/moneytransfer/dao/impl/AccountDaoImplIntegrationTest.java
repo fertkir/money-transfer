@@ -12,8 +12,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 
 public class AccountDaoImplIntegrationTest {
 
@@ -58,27 +57,22 @@ public class AccountDaoImplIntegrationTest {
             // given
             Account newAccount = Account.builder().id(1000L).balance(BigDecimal.TEN).build();
 
-            try {
-                // when
-                accountDao.save(newAccount);
-                fail("exception should have been thrown");
-            } catch (PersistenceException e) {
-                // then
-                assertThat(e.getMessage()).isEqualTo("Cannot update entity with id 1000");
-            }
+            // when
+            Throwable thrown = catchThrowable(() -> accountDao.save(newAccount));
+
+            // then
+            assertThat(thrown)
+                    .isInstanceOf(PersistenceException.class)
+                    .hasMessage("Cannot update entity with id 1000");
         });
     }
 
     private void executeWithTransactionRollback(Runnable runnable) {
-        try {
-            transactionTemplate.execute(() -> {
-                runnable.run();
-                throw new RollbackException();
-            });
-            fail("exception should have been thrown");
-        } catch (PersistenceException e) {
-            assertThat(e.getCause()).isInstanceOf(RollbackException.class);
-        }
+        Throwable thrown = catchThrowable(() -> transactionTemplate.execute(() -> {
+            runnable.run();
+            throw new RollbackException();
+        }));
+        assertThat(thrown).hasCauseInstanceOf(RollbackException.class);
     }
 
     private static class RollbackException extends RuntimeException {}
