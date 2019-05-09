@@ -89,7 +89,7 @@ public class AccountServiceImplTest {
     public void createNew() {
         // given
         Account mockAccount = mock(Account.class);
-        when(accountDao.create(any(Account.class))).thenReturn(mockAccount);
+        when(accountDao.save(any(Account.class))).thenReturn(mockAccount);
 
         // when
         Account actualAccount = accountService.createNew();
@@ -98,7 +98,7 @@ public class AccountServiceImplTest {
         Account passedAccount = Account.builder()
                 .balance(BigDecimal.ZERO)
                 .build();
-        verify(accountDao).create(passedAccount);
+        verify(accountDao).save(passedAccount);
         verify(transactionTemplate).execute(accountCaptor.capture());
         verifyNoMoreInteractions(accountDao, transactionTemplate);
 
@@ -119,7 +119,7 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
         Account returnMock = mock(Account.class);
-        when(accountDao.update(any(Account.class))).thenReturn(returnMock);
+        when(accountDao.save(any(Account.class))).thenReturn(returnMock);
 
         // when
         Account actualAccount = accountService.topUp(accountId, amount);
@@ -130,7 +130,7 @@ public class AccountServiceImplTest {
                 .balance(BigDecimal.valueOf(150))
                 .build();
         verify(accountDao).getById(accountId);
-        verify(accountDao).update(passedAccount);
+        verify(accountDao).save(passedAccount);
         verify(transactionTemplate).execute(accountCaptor.capture());
         verifyNoMoreInteractions(accountDao, transactionTemplate);
 
@@ -151,7 +151,7 @@ public class AccountServiceImplTest {
         when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
         Account returnMock = mock(Account.class);
-        when(accountDao.update(any(Account.class))).thenReturn(returnMock);
+        when(accountDao.save(any(Account.class))).thenReturn(returnMock);
 
         // when
         Account actualAccount = accountService.withdraw(accountId, amount);
@@ -162,7 +162,7 @@ public class AccountServiceImplTest {
                 .balance(BigDecimal.valueOf(70))
                 .build();
         verify(accountDao).getById(accountId);
-        verify(accountDao).update(passedAccount);
+        verify(accountDao).save(passedAccount);
         verify(transactionTemplate).execute(accountCaptor.capture());
         verifyNoMoreInteractions(accountDao, transactionTemplate);
 
@@ -222,8 +222,8 @@ public class AccountServiceImplTest {
                 .id(accountTo)
                 .balance(BigDecimal.valueOf(230))
                 .build();
-        when(accountDao.update(passedAccountFrom)).thenReturn(passedAccountFrom);
-        when(accountDao.update(passedAccountTo)).thenReturn(passedAccountTo);
+        when(accountDao.save(passedAccountFrom)).thenReturn(passedAccountFrom);
+        when(accountDao.save(passedAccountTo)).thenReturn(passedAccountTo);
 
         // when
         TransferResult transferResult = accountService.transfer(accountFrom, accountTo, amount);
@@ -231,8 +231,8 @@ public class AccountServiceImplTest {
         // then
         verify(accountDao).getById(accountFrom);
         verify(accountDao).getById(accountTo);
-        verify(accountDao).update(passedAccountFrom);
-        verify(accountDao).update(passedAccountTo);
+        verify(accountDao).save(passedAccountFrom);
+        verify(accountDao).save(passedAccountTo);
         verify(transactionTemplate).execute(transferResultCaptor.capture());
         verifyNoMoreInteractions(accountDao, transactionTemplate);
 
