@@ -1,12 +1,19 @@
 package com.github.fertkir.moneytransfer.servlet;
 
 import com.github.fertkir.moneytransfer.ApplicationMain;
+import com.google.inject.Injector;
 import io.restassured.RestAssured;
+import org.h2.tools.RunScript;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import javax.sql.DataSource;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import static io.restassured.RestAssured.*;
 import static java.lang.String.format;
@@ -15,6 +22,8 @@ import static org.hamcrest.Matchers.empty;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AccountsIntegrationTest {
+
+    private static final Injector injector = ApplicationMain.getInjector();
 
     private static Integer ID_1;
     private static Integer ID_2;
@@ -28,6 +37,7 @@ public class AccountsIntegrationTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
+        cleanDatabase();
         ApplicationMain.stopJetty();
     }
 
@@ -130,5 +140,13 @@ public class AccountsIntegrationTest {
                 .statusCode(409)
                 .assertThat()
                 .body("message", equalTo("Cannot withdraw 201. Not enough money"));
+    }
+
+    private static void cleanDatabase() throws SQLException {
+        DataSource dataSource = injector.getInstance(DataSource.class);
+        try (Connection connection = dataSource.getConnection()) {
+            RunScript.execute(connection, new InputStreamReader(AccountsIntegrationTest.class.getClassLoader()
+                    .getResourceAsStream("clean.sql")));
+        }
     }
 }
