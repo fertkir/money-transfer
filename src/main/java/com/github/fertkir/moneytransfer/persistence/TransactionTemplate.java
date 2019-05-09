@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.function.Supplier;
 
+import static java.sql.Connection.TRANSACTION_READ_COMMITTED;
+
 @Singleton
 public class TransactionTemplate {
 
@@ -24,6 +26,7 @@ public class TransactionTemplate {
         try (Connection connection = dataSource.getConnection()) {
             try {
                 connectionKeeper.set(connection);
+                connection.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
                 connection.setAutoCommit(false);
                 T result = supplier.get();
                 connection.commit();
