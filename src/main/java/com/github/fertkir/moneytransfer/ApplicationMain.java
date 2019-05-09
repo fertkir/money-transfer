@@ -27,6 +27,5 @@ public class ApplicationMain {
         servletContextHandler.addFilter(GuiceFilter.class, "/*", allOf(DispatcherType.class));
         servletContextHandler.addServlet(DefaultServlet.class, "/");
         server.start();
-        server.join();
     }
 }

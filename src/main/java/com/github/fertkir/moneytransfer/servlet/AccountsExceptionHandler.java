@@ -38,6 +38,8 @@ public class AccountsExceptionHandler implements Filter {
         } catch (PersistenceException e) {
             if (e.getCause() instanceof AccountingException) {
                 handle(e.getCause().getMessage(), response);
+            } else {
+                throw e;
             }
         }
     }
