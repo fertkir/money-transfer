@@ -46,6 +46,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account topUp(long accountId, BigDecimal amount) {
         return transactionTemplate.execute(() -> {
+            validateAmount(amount);
             Account account = accountDao.getById(accountId)
                     .orElseThrow(() -> createNoAccountException(accountId));
             BigDecimal newBalance = account.getBalance().add(amount);
@@ -59,6 +60,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account withdraw(long accountId, BigDecimal amount) {
         return transactionTemplate.execute(() -> {
+            validateAmount(amount);
             Account account = accountDao.getById(accountId)
                     .orElseThrow(() -> createNoAccountException(accountId));
             BigDecimal newBalance = account.getBalance().subtract(amount);
@@ -75,6 +77,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public TransferResult transfer(long accountFrom, long accountTo, BigDecimal amount) {
         return transactionTemplate.execute(() -> {
+            validateAmount(amount);
+
+            if (accountFrom == accountTo) {
+                throw new AccountingException("Source and destination accounts must be different");
+            }
+
             Account source = accountDao.getById(accountFrom)
                     .orElseThrow(() -> createNoAccountException(accountFrom));
             Account target = accountDao.getById(accountTo)
@@ -95,6 +103,13 @@ public class AccountServiceImpl implements AccountService {
                             .build()))
                     .build();
         });
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) > 0) {
+            return;
+        }
+        throw new AccountingException(format("Amount must be positive, but given %s", amount.toString()));
     }
 
     private AccountingException createNoAccountException(long accountId) {

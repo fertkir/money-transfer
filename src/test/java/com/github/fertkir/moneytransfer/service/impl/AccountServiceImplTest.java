@@ -49,7 +49,7 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void list() {
+    public void shouldReturnAllAccounts() {
         // given
         List<Account> mockAccounts = singletonList(mock(Account.class));
         when(accountDao.findAll()).thenReturn(mockAccounts);
@@ -67,7 +67,7 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void getById() {
+    public void shouldReturnAccountById() {
         // given
         long id = 1;
         Account mockAccount = mock(Account.class);
@@ -77,7 +77,7 @@ public class AccountServiceImplTest {
         Account actualAccount = accountService.getById(id);
 
         // then
-        verify(accountDao).getById(1);
+        verify(accountDao).getById(id);
         verify(transactionTemplate).execute(accountCaptor.capture());
         verifyNoMoreInteractions(accountDao, transactionTemplate);
 
@@ -86,7 +86,27 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void createNew() {
+    public void getByIdShouldThrowExceptionIfNoAccount() {
+        // given
+        long id = 1;
+        when(accountDao.getById(id)).thenReturn(Optional.empty());
+
+        try {
+            // when
+            accountService.getById(id);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(accountDao).getById(id);
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+
+            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
+        }
+    }
+
+    @Test
+    public void shouldCreateNewAccount() {
         // given
         Account mockAccount = mock(Account.class);
         when(accountDao.save(any(Account.class))).thenReturn(mockAccount);
@@ -107,7 +127,7 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void topUp() {
+    public void shouldTopUpAccount() {
         // given
         long accountId = 1;
         BigDecimal amount = BigDecimal.valueOf(100);
@@ -139,7 +159,45 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void withdraw() {
+    public void shouldNotTopUpAccountIfAmountIsNotPositive() {
+        // given
+        long accountId = 1;
+        BigDecimal amount = BigDecimal.valueOf(-1);
+
+        try {
+            // when
+            accountService.topUp(accountId, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
+        }
+    }
+
+    @Test
+    public void shouldNotTopUpIfNoSuchAccount() {
+        // given
+        long accountId = 1;
+        when(accountDao.getById(accountId)).thenReturn(Optional.empty());
+        BigDecimal amount = BigDecimal.valueOf(1);
+
+        try {
+            // when
+            accountService.topUp(accountId, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(accountDao).getById(accountId);
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
+        }
+    }
+
+    @Test
+    public void shouldWithdrawFromAccount() {
         // given
         long accountId = 1;
         BigDecimal amount = BigDecimal.valueOf(30);
@@ -171,7 +229,25 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void withdrawNotEnoughMoney() {
+    public void shouldNotWithdrawFromAccountIfAmountIsNotPositive() {
+        // given
+        long accountId = 1;
+        BigDecimal amount = BigDecimal.valueOf(-1);
+
+        try {
+            // when
+            accountService.withdraw(accountId, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
+        }
+    }
+
+    @Test
+    public void shouldNotWithdrawIfNotEnoughMoney() {
         // given
         long accountId = 1;
         BigDecimal amount = BigDecimal.valueOf(100);
@@ -197,7 +273,27 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void transfer() {
+    public void shouldNotWithdrawIfNoSuchAccount() {
+        // given
+        long accountId = 1;
+        when(accountDao.getById(accountId)).thenReturn(Optional.empty());
+        BigDecimal amount = BigDecimal.valueOf(1);
+
+        try {
+            // when
+            accountService.withdraw(accountId, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(accountDao).getById(accountId);
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
+        }
+    }
+
+    @Test
+    public void shouldTransferMoney() {
         // given
         long accountFrom = 1;
         long accountTo = 2;
@@ -246,7 +342,7 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void transferNotEnoughMoney() {
+    public void shouldNotTransferIfNotEnoughMoney() {
         // given
         long accountFrom = 1;
         long accountTo = 2;
@@ -275,6 +371,94 @@ public class AccountServiceImplTest {
             verifyNoMoreInteractions(accountDao, transactionTemplate);
 
             assertThat(e.getMessage()).isEqualTo("Cannot transfer 30. Not enough money");
+        }
+    }
+
+    @Test
+    public void shouldNotTransferMoneyIfAmountIsNotPositive() {
+        // given
+        long accountFrom = 1;
+        long accountTo = 2;
+        BigDecimal amount = BigDecimal.valueOf(-1);
+
+        try {
+            // when
+            accountService.transfer(accountFrom, accountTo, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Amount must be positive, but given -1");
+        }
+    }
+
+    @Test
+    public void shouldNotTransferMoneyIfAccountsAreSame() {
+        // given
+        long accountFrom = 1;
+        long accountTo = 1;
+        BigDecimal amount = BigDecimal.valueOf(1);
+
+        try {
+            // when
+            accountService.transfer(accountFrom, accountTo, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Source and destination accounts must be different");
+        }
+    }
+
+    @Test
+    public void shouldNotTransferIfNoSourceAccount() {
+        // given
+        long accountFrom = 1;
+        long accountTo = 2;
+        BigDecimal amount = BigDecimal.valueOf(1);
+
+        when(accountDao.getById(accountFrom)).thenReturn(Optional.empty());
+
+        try {
+            // when
+            accountService.transfer(accountFrom, accountTo, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(accountDao).getById(accountFrom);
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Account id \"1\" does not exist");
+        }
+    }
+
+    @Test
+    public void shouldNotTransferIfNoTargetAccount() {
+        // given
+        long accountFrom = 1;
+        long accountTo = 2;
+        BigDecimal amount = BigDecimal.valueOf(1);
+
+        Account initialAccountFrom = Account.builder()
+                .id(accountFrom)
+                .balance(BigDecimal.valueOf(20))
+                .build();
+        when(accountDao.getById(accountFrom)).thenReturn(Optional.of(initialAccountFrom));
+        when(accountDao.getById(accountTo)).thenReturn(Optional.empty());
+
+        try {
+            // when
+            accountService.transfer(accountFrom, accountTo, amount);
+            fail("exception should have been thrown");
+        } catch (AccountingException e) {
+            // then
+            verify(accountDao).getById(accountFrom);
+            verify(accountDao).getById(accountTo);
+            verify(transactionTemplate).execute(accountCaptor.capture());
+            verifyNoMoreInteractions(accountDao, transactionTemplate);
+            assertThat(e.getMessage()).isEqualTo("Account id \"2\" does not exist");
         }
     }
 }
