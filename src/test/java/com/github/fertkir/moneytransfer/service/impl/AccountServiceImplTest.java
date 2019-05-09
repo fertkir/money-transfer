@@ -14,6 +14,7 @@ import org.mockito.stubbing.Answer;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
@@ -70,7 +71,7 @@ public class AccountServiceImplTest {
         // given
         long id = 1;
         Account mockAccount = mock(Account.class);
-        when(accountDao.getById(id)).thenReturn(mockAccount);
+        when(accountDao.getById(id)).thenReturn(Optional.of(mockAccount));
 
         // when
         Account actualAccount = accountService.getById(id);
@@ -115,7 +116,7 @@ public class AccountServiceImplTest {
                 .id(accountId)
                 .balance(BigDecimal.valueOf(50))
                 .build();
-        when(accountDao.getById(accountId)).thenReturn(initialAccount);
+        when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
         Account returnMock = mock(Account.class);
         when(accountDao.update(any(Account.class))).thenReturn(returnMock);
@@ -147,7 +148,7 @@ public class AccountServiceImplTest {
                 .id(accountId)
                 .balance(BigDecimal.valueOf(100))
                 .build();
-        when(accountDao.getById(accountId)).thenReturn(initialAccount);
+        when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
         Account returnMock = mock(Account.class);
         when(accountDao.update(any(Account.class))).thenReturn(returnMock);
@@ -179,7 +180,7 @@ public class AccountServiceImplTest {
                 .id(accountId)
                 .balance(BigDecimal.valueOf(50))
                 .build();
-        when(accountDao.getById(accountId)).thenReturn(initialAccount);
+        when(accountDao.getById(accountId)).thenReturn(Optional.of(initialAccount));
 
         try {
             // when
@@ -206,12 +207,12 @@ public class AccountServiceImplTest {
                 .id(accountFrom)
                 .balance(BigDecimal.valueOf(100))
                 .build();
-        when(accountDao.getById(accountFrom)).thenReturn(initialAccountFrom);
+        when(accountDao.getById(accountFrom)).thenReturn(Optional.of(initialAccountFrom));
         Account initialAccountTo = Account.builder()
                 .id(accountTo)
                 .balance(BigDecimal.valueOf(200))
                 .build();
-        when(accountDao.getById(accountTo)).thenReturn(initialAccountTo);
+        when(accountDao.getById(accountTo)).thenReturn(Optional.of(initialAccountTo));
 
         Account passedAccountFrom = Account.builder()
                 .id(accountFrom)
@@ -255,12 +256,12 @@ public class AccountServiceImplTest {
                 .id(accountFrom)
                 .balance(BigDecimal.valueOf(20))
                 .build();
-        when(accountDao.getById(accountFrom)).thenReturn(initialAccountFrom);
+        when(accountDao.getById(accountFrom)).thenReturn(Optional.of(initialAccountFrom));
         Account initialAccountTo = Account.builder()
                 .id(accountTo)
                 .balance(BigDecimal.valueOf(200))
                 .build();
-        when(accountDao.getById(accountTo)).thenReturn(initialAccountTo);
+        when(accountDao.getById(accountTo)).thenReturn(Optional.of(initialAccountTo));
 
         // when
         try {

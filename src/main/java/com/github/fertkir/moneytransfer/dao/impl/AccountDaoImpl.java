@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AccountDaoImpl implements AccountDao {
 
@@ -41,19 +42,19 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     @Override
-    public Account getById(long id) {
+    public Optional<Account> getById(long id) {
         try {
             String query = "SELECT id, balance FROM account where id = ?";
             PreparedStatement statement = jdbcTemplate.prepareStatement(query);
             statement.setLong(1, id);
             ResultSet rs = statement.executeQuery();
             if (rs.next()) {
-                return Account.builder()
+                return Optional.of(Account.builder()
                         .id(rs.getLong("ID"))
                         .balance(rs.getBigDecimal("BALANCE"))
-                        .build();
+                        .build());
             } else {
-                return null;
+                return Optional.empty();
             }
         } catch (SQLException e) {
             throw new PersistenceException(e);

@@ -3,12 +3,13 @@ package com.github.fertkir.moneytransfer.dao;
 import com.github.fertkir.moneytransfer.entity.Account;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AccountDao {
 
     List<Account> findAll();
 
-    Account getById(long id);
+    Optional<Account> getById(long id);
 
     Account create(Account account);
 
