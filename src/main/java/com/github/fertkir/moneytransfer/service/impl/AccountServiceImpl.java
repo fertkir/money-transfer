@@ -7,12 +7,14 @@ import com.github.fertkir.moneytransfer.persistence.TransactionTemplate;
 import com.github.fertkir.moneytransfer.service.AccountService;
 import com.github.fertkir.moneytransfer.service.exception.AccountingException;
 import com.google.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static java.lang.String.format;
 
+@Slf4j
 public class AccountServiceImpl implements AccountService {
 
     private final AccountDao accountDao;
@@ -26,26 +28,34 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<Account> list() {
+        log.info("Requested list of accounts");
         return transactionTemplate.execute(accountDao::findAll);
     }
 
     @Override
     public Account getById(long id) {
-        return transactionTemplate.execute(() -> accountDao.getById(id)
+        log.info("Requested account by id: {}", id);
+        Account account = transactionTemplate.execute(() -> accountDao.getById(id)
                 .orElseThrow(() -> createNoAccountException(id)));
+        log.info("Returning account: {}", account);
+        return account;
     }
 
     @Override
     public Account createNew() {
-        return transactionTemplate.execute(() ->
+        log.info("Requested account creation");
+        Account account = transactionTemplate.execute(() ->
                 accountDao.save(Account.builder()
                         .balance(BigDecimal.ZERO)
                         .build()));
+        log.info("Created new account: {}", account);
+        return account;
     }
 
     @Override
     public Account topUp(long accountId, BigDecimal amount) {
-        return transactionTemplate.execute(() -> {
+        log.info("Requested top up of amount {} on account id {}", amount, accountId);
+        Account result = transactionTemplate.execute(() -> {
             validateAmount(amount);
             Account account = accountDao.getById(accountId)
                     .orElseThrow(() -> createNoAccountException(accountId));
@@ -55,11 +65,14 @@ public class AccountServiceImpl implements AccountService {
                     .build();
             return accountDao.save(updatedAccount);
         });
+        log.info("Account data after top up: {}", result);
+        return result;
     }
 
     @Override
     public Account withdraw(long accountId, BigDecimal amount) {
-        return transactionTemplate.execute(() -> {
+        log.info("Requested withdrawal of amount {} from account id {}", amount, accountId);
+        Account result = transactionTemplate.execute(() -> {
             validateAmount(amount);
             Account account = accountDao.getById(accountId)
                     .orElseThrow(() -> createNoAccountException(accountId));
@@ -72,11 +85,14 @@ public class AccountServiceImpl implements AccountService {
                     .build();
             return accountDao.save(updatedAccount);
         });
+        log.info("Account data after withdrawal: {}", result);
+        return result;
     }
 
     @Override
     public TransferResult transfer(long accountFrom, long accountTo, BigDecimal amount) {
-        return transactionTemplate.execute(() -> {
+        log.info("Requested transfer of amount {} from account {} to account {}", amount, accountFrom, accountTo);
+        TransferResult transferResult = transactionTemplate.execute(() -> {
             validateAmount(amount);
 
             if (accountFrom == accountTo) {
@@ -103,6 +119,8 @@ public class AccountServiceImpl implements AccountService {
                             .build()))
                     .build();
         });
+        log.info("Result of transfer: {}", transferResult);
+        return transferResult;
     }
 
     private void validateAmount(BigDecimal amount) {
