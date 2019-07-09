@@ -41,7 +41,7 @@ public class TransactionTemplateTest {
         // then
         InOrder inOrder = inOrder(connection, supplier, connectionKeeper);
         inOrder.verify(connectionKeeper).set(connection);
-        inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         inOrder.verify(connection).setAutoCommit(false);
         inOrder.verify(supplier).get();
         inOrder.verify(connection).commit();
@@ -64,7 +64,7 @@ public class TransactionTemplateTest {
         // then
         InOrder inOrder = inOrder(connection, supplier, connectionKeeper);
         inOrder.verify(connectionKeeper).set(connection);
-        inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
         inOrder.verify(connection).setAutoCommit(false);
         inOrder.verify(supplier).get();
         inOrder.verify(connection).rollback();
